@@ -2,9 +2,11 @@ name: Build React Native Android App
 
 on:
   push:
-    branches: [master] # 当main分支有push时触发
+    branches: [master]
+    tags:
+      - "v*"
   pull_request:
-    branches: [master] # 当向main分支发起PR时触发
+    branches: [master]
 
 jobs:
   build:
@@ -67,20 +69,15 @@ jobs:
             exit 1
           fi
 
-          # 签名apk
-      #   - uses: r0adkll/sign-android-release@v1
-      #     name: Sign app APK
-      #     id: sign_app
-      #     with:
-      #       releaseDirectory: app/build/outputs/apk/release
-      #       signingKeyBase64: ${{ secrets.SIGNING_KEY }}
-      #       alias: ${{ secrets.ALIAS }}
-      #       keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
-      #       keyPassword: ${{ secrets.KEY_PASSWORD }}
-      #     # 还能设置build-tools version，29.0.3好像不支持了
-      #     env:
-      #       # override default build-tools version (29.0.3) -- optional
-      #       BUILD_TOOLS_VERSION: "34.0.0"
+      - name: 确定版本名称
+        id: version
+        run: |
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+          else
+            VERSION=$(date +%Y%m%d)-${GITHUB_SHA:0:8}
+          fi
+          echo "version=$VERSION" >> $GITHUB_ENV
 
       # build-tools可能不存在，用step查看下支持哪些
       - run: ls /usr/local/lib/android/sdk/build-tools/
@@ -89,38 +86,18 @@ jobs:
       # GITHUB_REF_NAME是“触发workflow的分支或tag名称”
       - run: mv android/app/build/outputs/apk/release/app-release.apk fundark_$GITHUB_REF_NAME.apk
 
-      # 发布
-      - uses: ncipollo/release-action@v1
+      # 上传APK作为artifact
+      - uses: actions/upload-artifact@v3
         with:
-          # 要包含到Release Assets中的文件
-          artifacts: "*.apk"
-          # 会使用一个临时的token来创建Release
+          name: android-build
+          path: fundark_*.apk
+
+      # 只在推送标签时创建Release
+      - uses: ncipollo/release-action@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          artifacts: "fundark_*.apk"
           token: ${{ github.token }}
-          # 自动生成一些变化列表之类的内容。
           generateReleaseNotes: true
-
-    #   - name: Releasing using Hub
-    #     uses: sangatdesai/release-apk@main
-    #     env:
-    #       GITHUB_TOKEN: ${{ secrets.apk }}
-    #       APP_FOLDER: app
-    #   - name: Upload APK
-    #     uses: actions/upload-artifact@v3
-    #     with:
-    #       name: app-release.apk
-    #       path: android/app/build/outputs/apk/release/app-release.apk
-
-    #   - name: publish release
-    #     id: publish-release
-    #     uses: actions/github-script@v6
-    #     env:
-    #       release_id: "test"
-    #     with:
-    #       script: |
-    #         github.rest.repos.updateRelease({
-    #           owner: context.repo.owner,
-    #           repo: context.repo.repo,
-    #           release_id: process.env.release_id,
-    #           draft: false,
-    #           prerelease: false
-    #         })
+          tag: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
