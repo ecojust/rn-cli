@@ -57,23 +57,28 @@ jobs:
         env:
           ANDROID_SDK_ROOT: /usr/local/lib/android/sdk # Android SDK路径
 
+      - name: Releasing using Hub
+        uses: sangatdesai/release-apk@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.apk }}
+          APP_FOLDER: app
       #   - name: Upload APK
       #     uses: actions/upload-artifact@v3
       #     with:
       #       name: app-release.apk
       #       path: android/app/build/outputs/apk/release/app-release.apk
 
-      - name: publish release
-        id: publish-release
-        uses: actions/github-script@v6
-        env:
-          release_id: "test"
-        with:
-          script: |
-            github.rest.repos.updateRelease({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              release_id: process.env.release_id,
-              draft: false,
-              prerelease: false
-            })
+    #   - name: publish release
+    #     id: publish-release
+    #     uses: actions/github-script@v6
+    #     env:
+    #       release_id: "test"
+    #     with:
+    #       script: |
+    #         github.rest.repos.updateRelease({
+    #           owner: context.repo.owner,
+    #           repo: context.repo.repo,
+    #           release_id: process.env.release_id,
+    #           draft: false,
+    #           prerelease: false
+    #         })
