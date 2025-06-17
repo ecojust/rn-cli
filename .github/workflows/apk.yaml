@@ -55,10 +55,17 @@ jobs:
         run: |
           cd android
           ./gradlew assembleRelease  # 构建Release版本
-          echo "date=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
-
         env:
           ANDROID_SDK_ROOT: /usr/local/lib/android/sdk # Android SDK路径
+
+      - name: Check APK existence
+        run: |
+          if [ -f "android/app/build/outputs/apk/release/app-release.apk" ]; then
+            echo "APK 文件存在，构建成功！"
+          else
+            echo "APK 文件不存在，构建失败！"
+            exit 1
+          fi
 
           # 签名apk
       #   - uses: r0adkll/sign-android-release@v1
@@ -77,7 +84,6 @@ jobs:
 
       # build-tools可能不存在，用step查看下支持哪些
       - run: ls /usr/local/lib/android/sdk/build-tools/
-          echo ${{steps.build_app.outputs.signedReleaseFile}}
 
       # 重命名apk
       # GITHUB_REF_NAME是“触发workflow的分支或tag名称”
