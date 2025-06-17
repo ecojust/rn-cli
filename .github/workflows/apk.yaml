@@ -63,13 +63,38 @@ jobs:
           name: android-build
           path: app-*.apk
 
-      - name: Create GitHub Release
-        uses: ncipollo/release-action@v1
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download APK artifact
+        uses: actions/download-artifact@v4
         with:
-          artifacts: "app-*.apk"
-          token: ${{ github.token }}
-          name: ${{ steps.release-info.outputs.RELEASE_NAME }} # 使用生成的名称
-          tag: ${{ steps.release-info.outputs.RELEASE_TAG }} # 使用生成的标签
+          name: android-build
+          path: artifacts
+
+      - name: Get tag name
+        id: tag
+        run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          release_name: Release ${{ steps.tag.outputs.tag }}
           draft: false
-          prerelease: true # 标记为预发布版本
-          generateReleaseNotes: true
+          prerelease: false
+
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: artifacts/app-*.apk
+          asset_name: app-${{ steps.tag.outputs.tag }}.apk
+          asset_content_type: application/vnd.android.package-archive
