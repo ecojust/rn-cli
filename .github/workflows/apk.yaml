@@ -4,6 +4,10 @@ on:
   push:
     branches: "*" # 监听所有分支的推送
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -39,27 +43,33 @@ jobs:
         id: release-info
         run: |
           # 生成唯一的Release名称和标签
-          BRANCH=${GITHUB_REF#refs/heads/}  # 获取分支名
+          BRANCH=$(echo ${GITHUB_REF#refs/heads/} | tr / -)  # 将斜杠替换为连字符
           TIMESTAMP=$(date +%Y%m%d%H%M%S)  # 获取时间戳
           SHA_SHORT=${GITHUB_SHA:0:8}      # 获取短SHA
 
           RELEASE_NAME="${BRANCH}-${TIMESTAMP}"
           RELEASE_TAG="${BRANCH}-${SHA_SHORT}"
 
-          echo "release_name=$RELEASE_NAME" >> $GITHUB_ENV
-          echo "release_tag=$RELEASE_TAG" >> $GITHUB_ENV
+          echo "RELEASE_NAME=$RELEASE_NAME" >> $GITHUB_ENV
+          echo "RELEASE_TAG=$RELEASE_TAG" >> $GITHUB_ENV
 
       - name: Rename APK with release info
         run: |
-          mv android/app/build/outputs/apk/release/app-release.apk app-${{ env.release_name }}.apk
+          mv android/app/build/outputs/apk/release/app-release.apk app-${{ steps.release-info.outputs.RELEASE_NAME }}.apk
+
+      - name: Upload APK as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-build
+          path: app-*.apk
 
       - name: Create GitHub Release
         uses: ncipollo/release-action@v1
         with:
           artifacts: "app-*.apk"
-          token: ${{ github.token }}
-          name: ${{ env.release_name }} # 使用生成的名称
-          tag: ${{ env.release_tag }} # 使用生成的标签
+          token: ${{ github.GITHUB_TOKEN }}
+          name: ${{ steps.release-info.outputs.RELEASE_NAME }} # 使用生成的名称
+          tag: ${{ steps.release-info.outputs.RELEASE_TAG }} # 使用生成的标签
           draft: false
           prerelease: true # 标记为预发布版本
           generateReleaseNotes: true
