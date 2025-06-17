@@ -51,22 +51,55 @@ jobs:
             ${{ runner.os }}-gradle-caches-
 
       - name: Build Android app
+        id: build_app
         run: |
           cd android
           ./gradlew assembleRelease  # 构建Release版本
         env:
           ANDROID_SDK_ROOT: /usr/local/lib/android/sdk # Android SDK路径
 
-      - name: Releasing using Hub
-        uses: sangatdesai/release-apk@main
-        env:
-          GITHUB_TOKEN: ${{ secrets.apk }}
-          APP_FOLDER: app
-      #   - name: Upload APK
-      #     uses: actions/upload-artifact@v3
+          # 签名apk
+      #   - uses: r0adkll/sign-android-release@v1
+      #     name: Sign app APK
+      #     id: sign_app
       #     with:
-      #       name: app-release.apk
-      #       path: android/app/build/outputs/apk/release/app-release.apk
+      #       releaseDirectory: app/build/outputs/apk/release
+      #       signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+      #       alias: ${{ secrets.ALIAS }}
+      #       keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+      #       keyPassword: ${{ secrets.KEY_PASSWORD }}
+      #     # 还能设置build-tools version，29.0.3好像不支持了
+      #     env:
+      #       # override default build-tools version (29.0.3) -- optional
+      #       BUILD_TOOLS_VERSION: "34.0.0"
+
+      # build-tools可能不存在，用step查看下支持哪些
+      - run: ls /usr/local/lib/android/sdk/build-tools/
+
+      # 重命名apk
+      # GITHUB_REF_NAME是“触发workflow的分支或tag名称”
+      - run: mv ${{steps.build_app.outputs.signedReleaseFile}} fundark_$GITHUB_REF_NAME.apk
+
+      # 发布
+      - uses: ncipollo/release-action@v1
+        with:
+          # 要包含到Release Assets中的文件
+          artifacts: "*.apk"
+          # 会使用一个临时的token来创建Release
+          token: ${{ github.token }}
+          # 自动生成一些变化列表之类的内容。
+          generateReleaseNotes: true
+
+    #   - name: Releasing using Hub
+    #     uses: sangatdesai/release-apk@main
+    #     env:
+    #       GITHUB_TOKEN: ${{ secrets.apk }}
+    #       APP_FOLDER: app
+    #   - name: Upload APK
+    #     uses: actions/upload-artifact@v3
+    #     with:
+    #       name: app-release.apk
+    #       path: android/app/build/outputs/apk/release/app-release.apk
 
     #   - name: publish release
     #     id: publish-release
