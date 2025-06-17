@@ -75,7 +75,8 @@ jobs:
 
       - name: Get tag name
         id: tag
-        run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+        run: |
+          echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
       - name: Create Release
         id: create_release
