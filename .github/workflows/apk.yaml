@@ -87,7 +87,7 @@ jobs:
       - run: mv android/app/build/outputs/apk/release/app-release.apk fundark_$GITHUB_REF_NAME.apk
 
       # 上传APK作为artifact
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: android-build
           path: fundark_*.apk
