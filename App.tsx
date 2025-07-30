@@ -16,7 +16,7 @@ import {
   Platform,
 } from "react-native";
 
-import Bluetooth from "./service/Bluetooth";
+// import Bluetooth from "./service/Bluetooth";
 
 interface IDevice {
   name: string;
@@ -27,12 +27,12 @@ function App() {
   const [devices, setDevices] = useState([]);
 
   useEffect(() => {
-    Bluetooth.startScan((devices: any) => {
-      setDevices(devices);
-    });
+    // Bluetooth.startScan((devices: any) => {
+    //   setDevices(devices);
+    // });
 
     return () => {
-      Bluetooth.stopScan();
+      // Bluetooth.stopScan();
     };
   }, []);
 
