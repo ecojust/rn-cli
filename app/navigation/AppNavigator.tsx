@@ -4,7 +4,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 
 // 导入页面组件
 import LoginScreen from "../login_RN";
-import MenusScreen from "../menus_RN";
+// import MenusScreen from "../menus_RN";
 // import ProductInScreen from "../pages/productIn";
 // import ProductInNewScreen from "../pages/productIn/new";
 // import ProductInAddScreen from "../pages/productIn/add";
@@ -29,7 +29,7 @@ export default function AppNavigator() {
         }}
       >
         <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="Menus" component={MenusScreen} />
+        {/* <Stack.Screen name="Menus" component={MenusScreen} /> */}
 
         {/* <Stack.Screen name="ProductIn" component={ProductInScreen} />
         <Stack.Screen name="ProductInNew" component={ProductInNewScreen} />
