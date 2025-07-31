@@ -9,7 +9,7 @@ import {
 import { useNavigation } from "@react-navigation/native";
 // import FaceRecognition from "./components/FaceRecognition";
 import AnimatedBackground from "./components/AnimatedBackground";
-import PushNotification from "react-native-push-notification";
+// import PushNotification from "react-native-push-notification";
 import Toast from "react-native-toast-message";
 
 export default function LoginScreen() {
@@ -35,41 +35,39 @@ export default function LoginScreen() {
   };
 
   const handleNotify = () => {
-    PushNotification.localNotification({
-      title: "测试通知",
-      message: "这是一条测试通知内容",
-      playSound: true,
-      soundName: "default",
-    });
-
-    Toast.show({
-      type: "success",
-      text1: "通知已发送",
-      text2: "请查看通知栏",
-    });
+    // PushNotification.localNotification({
+    //   title: "测试通知",
+    //   message: "这是一条测试通知内容",
+    //   playSound: true,
+    //   soundName: "default",
+    // });
+    // Toast.show({
+    //   type: "success",
+    //   text1: "通知已发送",
+    //   text2: "请查看通知栏",
+    // });
   };
 
   useEffect(() => {
     // 配置推送通知
-    PushNotification.configure({
-      onNotification: function (notification) {
-        console.log("收到通知:", notification);
-      },
-      requestPermissions: Platform.OS === "ios",
-    });
-
-    // 创建通知频道 (Android)
-    PushNotification.createChannel(
-      {
-        channelId: "default-channel",
-        channelName: "Default Channel",
-        channelDescription: "A default channel",
-        soundName: "default",
-        importance: 4,
-        vibrate: true,
-      },
-      (created) => console.log(`createChannel returned '${created}'`)
-    );
+    // PushNotification.configure({
+    //   onNotification: function (notification) {
+    //     console.log("收到通知:", notification);
+    //   },
+    //   requestPermissions: Platform.OS === "ios",
+    // });
+    // // 创建通知频道 (Android)
+    // PushNotification.createChannel(
+    //   {
+    //     channelId: "default-channel",
+    //     channelName: "Default Channel",
+    //     channelDescription: "A default channel",
+    //     soundName: "default",
+    //     importance: 4,
+    //     vibrate: true,
+    //   },
+    //   (created) => console.log(`createChannel returned '${created}'`)
+    // );
   }, []);
 
   return (
